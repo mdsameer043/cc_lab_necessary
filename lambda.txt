@@ -27,3 +27,40 @@ def lambda_handler(event, context):
         'statusCode': 200,
         'body': 'Message processed successfully'
     }
+
+
+
+import json
+import boto3
+from datetime import datetime
+
+# Connect to DynamoDB
+dynamodb = boto3.resource('dynamodb')
+
+# Table name
+table = dynamodb.Table('FileUploads')
+
+def lambda_handler(event, context):
+
+    # Get bucket name
+    bucket_name = event['Records'][0]['s3']['bucket']['name']
+
+    # Get uploaded file name
+    file_name = event['Records'][0]['s3']['object']['key']
+
+    # Current upload time
+    upload_time = str(datetime.now())
+
+    # Store into DynamoDB
+    table.put_item(
+        Item={
+            'FileName': file_name,
+            'BucketName': bucket_name,
+            'UploadTime': upload_time
+        }
+    )
+
+    return {
+        'statusCode': 200,
+        'body': json.dumps('File info stored in DynamoDB!')
+    }
